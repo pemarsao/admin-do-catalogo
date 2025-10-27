@@ -15,6 +15,7 @@ services:
       - rabbitmq
     networks:
       - adm_videos_network
+
   mysql:
     container_name: adm_videos_mysql
     image: mysql:latest

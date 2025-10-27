@@ -29,7 +29,6 @@ repositories {
     mavenCentral()
 }
 
-// REMOVIDO: Bloco configurations.all
 dependencies {
     implementation(project(":domain"))
     implementation(project(":application"))
@@ -37,7 +36,6 @@ dependencies {
     implementation("com.google.cloud:google-cloud-storage:2.59.0")
     implementation("com.google.guava:guava:33.5.0-jre")
 
-    //    implementation("mysql:mysql-connector-java")
     implementation("com.mysql:mysql-connector-j:8.0.33") // <-- Isso é para a sua aplicação
     implementation("org.springdoc:springdoc-openapi-webmvc-core:1.8.0")
     implementation("org.springdoc:springdoc-openapi-ui:1.8.0")
@@ -84,9 +82,9 @@ tasks.testCodeCoverageReport {
     dependsOn(tasks.test)
     reports {
         xml.required.set(true)
+        xml.outputLocation.set(layout.projectDirectory.file("../build/reports/jacoco/report.xml"))
         html.required.set(true)
         html.outputLocation.set(layout.projectDirectory.dir("../build/reports/jacoco"))
-        xml.outputLocation.set(layout.projectDirectory.file("../build/reports/jacoco/report.xml"))
     }
 }
 
