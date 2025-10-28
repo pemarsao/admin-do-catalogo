@@ -46,6 +46,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-undertow")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     implementation("com.fasterxml.jackson.module:jackson-module-afterburner")
 
@@ -56,6 +58,8 @@ dependencies {
     testImplementation(project(path = ":domain", configuration = "testClasses"))
 
     testImplementation("org.springframework.amqp:spring-rabbit-test:2.4.17")
+    testImplementation("org.springframework.security:spring-security-test")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude("org.junit.vintage") // desativa JUnit 4
         exclude("org.junit.jupiter") // evita versões antigas do Jupiter
