@@ -1,6 +1,7 @@
 package com.fullcycle.admin.catalogo.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fullcycle.admin.catalogo.ApiTest;
 import com.fullcycle.admin.catalogo.ControllerTest;
 import com.fullcycle.admin.catalogo.application.castmember.create.CreateCastMemberOutput;
 import com.fullcycle.admin.catalogo.application.castmember.create.DefaultCreateCastMemberUseCase;
@@ -80,21 +81,22 @@ public class CastMemberAPITest {
 
         // when
         final var request = post("/cast_members")
+                .with(ApiTest.CAST_MEMBERS_JWT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(aCommand));
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isCreated())
-            .andExpect(header().string("Location", "/cast_members/" + expectedId.getValue()))
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(expectedId.getValue()));
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/cast_members/" + expectedId.getValue()))
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(expectedId.getValue()));
 
         verify(createCastMemberUseCase, times(1)).execute(argThat(cmd ->
                 Objects.equals(expectedName, cmd.name()) &&
-                Objects.equals(expectedType, cmd.type())
-            ));
+                        Objects.equals(expectedType, cmd.type())
+        ));
     }
 
     @Test
@@ -109,20 +111,21 @@ public class CastMemberAPITest {
 
         // when
         final var request = post("/cast_members")
+                .with(ApiTest.CAST_MEMBERS_JWT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(aCommand));
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Location", nullValue()))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().string("Location", nullValue()))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         verify(createCastMemberUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedType, cmd.type())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedType, cmd.type())
         ));
     }
 
@@ -138,18 +141,18 @@ public class CastMemberAPITest {
         when(getCastMemberByIdUseCase.execute(any())).thenReturn(GetCastMemberOutput.from(aMember));
 
         // when
-        final var request = get("/cast_members/{cast_member_id}", expectedId);
+        final var request = get("/cast_members/{cast_member_id}", expectedId).with(ApiTest.CAST_MEMBERS_JWT);
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id", equalTo(expectedId)))
-            .andExpect(jsonPath("$.name", equalTo(expectedName)))
-            .andExpect(jsonPath("$.type", equalTo(expectedType.name())))
-            .andExpect(jsonPath("$.created_at", equalTo(aMember.getCreatedAt().toString())))
-            .andExpect(jsonPath("$.updated_at", equalTo(aMember.getUpdatedAt().toString())));
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", equalTo(expectedId)))
+                .andExpect(jsonPath("$.name", equalTo(expectedName)))
+                .andExpect(jsonPath("$.type", equalTo(expectedType.name())))
+                .andExpect(jsonPath("$.created_at", equalTo(aMember.getCreatedAt().toString())))
+                .andExpect(jsonPath("$.updated_at", equalTo(aMember.getUpdatedAt().toString())));
 
         verify(getCastMemberByIdUseCase, times(1)).execute(eq(expectedId));
 
@@ -164,14 +167,14 @@ public class CastMemberAPITest {
         when(getCastMemberByIdUseCase.execute(any())).thenThrow(NotFoundException.with(CastMember.class, expectedId));
 
         // when
-        final var request = get("/cast_members/{cast_member_id}", expectedId.getValue());
+        final var request = get("/cast_members/{cast_member_id}", expectedId.getValue()).with(ApiTest.CAST_MEMBERS_JWT);
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isNotFound())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)));
+                .andExpect(status().isNotFound())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)));
 
         verify(getCastMemberByIdUseCase, times(1)).execute(eq(expectedId.getValue()));
 
@@ -188,24 +191,25 @@ public class CastMemberAPITest {
         final var aCommand = new UpdateCastMemberRequest(expectedName, expectedType);
 
         when(updateCastMemberUseCase.execute(any()))
-            .thenReturn(UpdateCastMemberOutput.from(expectedId));
+                .thenReturn(UpdateCastMemberOutput.from(expectedId));
 
         // when
         final var request = put("/cast_members/{id}", expectedId.getValue())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.CAST_MEMBERS_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(aCommand));
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(expectedId.getValue()));
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(expectedId.getValue()));
 
         verify(updateCastMemberUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedId.getValue(), cmd.id()) &&
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedType, cmd.type())
+                Objects.equals(expectedId.getValue(), cmd.id()) &&
+                        Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedType, cmd.type())
         ));
     }
 
@@ -222,20 +226,21 @@ public class CastMemberAPITest {
 
         // when
         final var request = put("/cast_members/{id}", expectedId.getValue())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.CAST_MEMBERS_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(aCommand));
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         verify(updateCastMemberUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedId.getValue(), cmd.id()) &&
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedType, cmd.type())
+                Objects.equals(expectedId.getValue(), cmd.id()) &&
+                        Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedType, cmd.type())
         ));
     }
 
@@ -252,19 +257,20 @@ public class CastMemberAPITest {
 
         // when
         final var request = put("/cast_members/{id}", expectedId.getValue())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.CAST_MEMBERS_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(aCommand));
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)));
 
         verify(updateCastMemberUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedId.getValue(), cmd.id()) &&
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedType, cmd.type())
+                Objects.equals(expectedId.getValue(), cmd.id()) &&
+                        Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedType, cmd.type())
         ));
     }
 
@@ -274,16 +280,16 @@ public class CastMemberAPITest {
         final var expectedId = CastMemberID.from("123");
 
         doNothing()
-            .when(deleteCastMemberUseCase)
-            .execute(expectedId.getValue());
+                .when(deleteCastMemberUseCase)
+                .execute(expectedId.getValue());
 
         // when
-        final var request = delete("/cast_members/{id}", expectedId.getValue());
+        final var request = delete("/cast_members/{id}", expectedId.getValue()).with(ApiTest.CAST_MEMBERS_JWT);
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent());
 
         verify(deleteCastMemberUseCase, times(1)).execute(expectedId.getValue());
     }
@@ -303,37 +309,38 @@ public class CastMemberAPITest {
         final var expectedItems = List.of(CastMemberListOutput.from(aMember));
 
         when(listCastMembersUseCase.execute(any()))
-            .thenReturn(new Pagination<>(expectedPage, expectedPerPage, expectedTotal, expectedItems));
+                .thenReturn(new Pagination<>(expectedPage, expectedPerPage, expectedTotal, expectedItems));
 
         // when
         final var request = get("/cast_members")
-            .param("page", String.valueOf(expectedPage))
-            .param("perPage", String.valueOf(expectedPerPage))
-            .param("search", expectedTerms)
-            .param("sort", expectedSort)
-            .param("dir", expectedDirection)
-            .accept(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CAST_MEMBERS_JWT)
+                .param("page", String.valueOf(expectedPage))
+                .param("perPage", String.valueOf(expectedPerPage))
+                .param("search", expectedTerms)
+                .param("sort", expectedSort)
+                .param("dir", expectedDirection)
+                .accept(MediaType.APPLICATION_JSON);
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
-            .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
-            .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
-            .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
-            .andExpect(jsonPath("$.items[0].id", equalTo(aMember.getId().getValue())))
-            .andExpect(jsonPath("$.items[0].name", equalTo(aMember.getName())))
-            .andExpect(jsonPath("$.items[0].type", equalTo(aMember.getType().name())))
-            .andExpect(jsonPath("$.items[0].created_at", equalTo(aMember.getCreatedAt().toString())));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
+                .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
+                .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
+                .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
+                .andExpect(jsonPath("$.items[0].id", equalTo(aMember.getId().getValue())))
+                .andExpect(jsonPath("$.items[0].name", equalTo(aMember.getName())))
+                .andExpect(jsonPath("$.items[0].type", equalTo(aMember.getType().name())))
+                .andExpect(jsonPath("$.items[0].created_at", equalTo(aMember.getCreatedAt().toString())));
 
 
         verify(listCastMembersUseCase, times(1)).execute(argThat(query -> {
             return Objects.equals(expectedPage, query.page())
-                && Objects.equals(expectedPerPage, query.perPage())
-                && Objects.equals(expectedTerms, query.terms())
-                && Objects.equals(expectedSort, query.sort())
-                && Objects.equals(expectedDirection, query.direction());
+                    && Objects.equals(expectedPerPage, query.perPage())
+                    && Objects.equals(expectedTerms, query.terms())
+                    && Objects.equals(expectedSort, query.sort())
+                    && Objects.equals(expectedDirection, query.direction());
         }));
     }
 
@@ -352,32 +359,33 @@ public class CastMemberAPITest {
         final var expectedItems = List.of(CastMemberListOutput.from(aMember));
 
         when(listCastMembersUseCase.execute(any()))
-            .thenReturn(new Pagination<>(expectedPage, expectedPerPage, expectedTotal, expectedItems));
+                .thenReturn(new Pagination<>(expectedPage, expectedPerPage, expectedTotal, expectedItems));
 
         // when
         final var request = get("/cast_members")
-            .accept(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CAST_MEMBERS_JWT)
+                .accept(MediaType.APPLICATION_JSON);
         final var response = mvc.perform(request);
 
         // then
         response
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
-            .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
-            .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
-            .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
-            .andExpect(jsonPath("$.items[0].id", equalTo(aMember.getId().getValue())))
-            .andExpect(jsonPath("$.items[0].name", equalTo(aMember.getName())))
-            .andExpect(jsonPath("$.items[0].type", equalTo(aMember.getType().name())))
-            .andExpect(jsonPath("$.items[0].created_at", equalTo(aMember.getCreatedAt().toString())));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
+                .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
+                .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
+                .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
+                .andExpect(jsonPath("$.items[0].id", equalTo(aMember.getId().getValue())))
+                .andExpect(jsonPath("$.items[0].name", equalTo(aMember.getName())))
+                .andExpect(jsonPath("$.items[0].type", equalTo(aMember.getType().name())))
+                .andExpect(jsonPath("$.items[0].created_at", equalTo(aMember.getCreatedAt().toString())));
 
 
         verify(listCastMembersUseCase, times(1)).execute(argThat(query -> {
             return Objects.equals(expectedPage, query.page())
-                   && Objects.equals(expectedPerPage, query.perPage())
-                   && Objects.equals(expectedTerms, query.terms())
-                   && Objects.equals(expectedSort, query.sort())
-                   && Objects.equals(expectedDirection, query.direction());
+                    && Objects.equals(expectedPerPage, query.perPage())
+                    && Objects.equals(expectedTerms, query.terms())
+                    && Objects.equals(expectedSort, query.sort())
+                    && Objects.equals(expectedDirection, query.direction());
         }));
 
     }
