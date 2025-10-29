@@ -1,6 +1,7 @@
 package com.fullcycle.admin.catalogo.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fullcycle.admin.catalogo.ApiTest;
 import com.fullcycle.admin.catalogo.ControllerTest;
 import com.fullcycle.admin.catalogo.application.genre.create.CreateGenreOutput;
 import com.fullcycle.admin.catalogo.application.genre.create.CreateGenreUseCase;
@@ -82,6 +83,7 @@ public class GenreAPITest {
 
         //when
         final var aRequest = MockMvcRequestBuilders.post("/genres")
+                .with(ApiTest.GENRES_JWT)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapper.writeValueAsString(aCommand));
 
@@ -96,9 +98,9 @@ public class GenreAPITest {
 
         Mockito.verify(createGenreUseCase).execute(argThat(cmd ->
                 Objects.equals(expectedName, cmd.name()) &&
-                Objects.equals(expectedIsActive, cmd.isActive()) &&
-                Objects.equals(expectedCategories, cmd.categories())
-            ));
+                        Objects.equals(expectedIsActive, cmd.isActive()) &&
+                        Objects.equals(expectedCategories, cmd.categories())
+        ));
 
     }
 
@@ -114,27 +116,28 @@ public class GenreAPITest {
         final var aCommand = new CreateGenreRequest(expectedName, expectedCategories, expectedIsActive);
 
         Mockito.when(createGenreUseCase.execute(Mockito.any()))
-            .thenThrow(new NotificationException("Error message", Notification.create(new Error(expectedErrorMessage))));
+                .thenThrow(new NotificationException("Error message", Notification.create(new Error(expectedErrorMessage))));
 
         //when
         final var aRequest = MockMvcRequestBuilders.post("/genres")
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.GENRES_JWT)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(aCommand));
 
         final var response = mock.perform(aRequest)
-            .andDo(print());
+                .andDo(print());
 
         //then
         response.andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().string("Location", nullValue()))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(header().string("Location", nullValue()))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         Mockito.verify(createGenreUseCase).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedIsActive, cmd.isActive()) &&
-            Objects.equals(expectedCategories, cmd.categories())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive()) &&
+                        Objects.equals(expectedCategories, cmd.categories())
         ));
     }
 
@@ -146,31 +149,32 @@ public class GenreAPITest {
         final var expectedCategories = List.of("123", "456");
 
         final var aGenre = Genre.newGenre(expectedName, expectedIsActive)
-            .addCategories(expectedCategories.stream().map(
-            CategoryID::from).toList());
+                .addCategories(expectedCategories.stream().map(
+                        CategoryID::from).toList());
 
         final var expectedId = aGenre.getId().getValue();
 
         Mockito.when(getGenreByIdUseCase.execute(Mockito.any()))
-            .thenReturn(GenreOutput.from(aGenre));
+                .thenReturn(GenreOutput.from(aGenre));
 
         //when
         final var aRequest = MockMvcRequestBuilders.get("/genres/{genreId}", expectedId)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON_VALUE);
+                .with(ApiTest.GENRES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE);
 
         final var response = mock.perform(aRequest);
 
         //then
         response.andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id", equalTo(expectedId)))
-            .andExpect(jsonPath("$.name", equalTo(expectedName)))
-            .andExpect(jsonPath("$.is_active", equalTo(expectedIsActive)))
-            .andExpect(jsonPath("$.categories_id", equalTo(expectedCategories)))
-            .andExpect(jsonPath("$.created_at", equalTo(aGenre.getCreatedAt().toString())))
-            .andExpect(jsonPath("$.updated_at", equalTo(aGenre.getUpdatedAt().toString())))
-            .andExpect(jsonPath("$.deleted_at", equalTo(aGenre.getDeletedAt().toString())));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", equalTo(expectedId)))
+                .andExpect(jsonPath("$.name", equalTo(expectedName)))
+                .andExpect(jsonPath("$.is_active", equalTo(expectedIsActive)))
+                .andExpect(jsonPath("$.categories_id", equalTo(expectedCategories)))
+                .andExpect(jsonPath("$.created_at", equalTo(aGenre.getCreatedAt().toString())))
+                .andExpect(jsonPath("$.updated_at", equalTo(aGenre.getUpdatedAt().toString())))
+                .andExpect(jsonPath("$.deleted_at", equalTo(aGenre.getDeletedAt().toString())));
 
         Mockito.verify(getGenreByIdUseCase).execute(eq(expectedId));
 
@@ -183,19 +187,20 @@ public class GenreAPITest {
         final var expectedMessage = "Genre with ID 123 was not found";
 
         Mockito.when(getGenreByIdUseCase.execute(Mockito.any()))
-            .thenThrow(NotFoundException.with(Genre.class, expectedId));
+                .thenThrow(NotFoundException.with(Genre.class, expectedId));
 
         //when
         final var aRequest = MockMvcRequestBuilders.get("/genres/{genreId}", expectedId.getValue())
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON_VALUE);
+                .with(ApiTest.GENRES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE);
 
         final var response = mock.perform(aRequest);
 
         //then
         response.andExpect(status().isNotFound())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
 
         Mockito.verify(getGenreByIdUseCase).execute(eq(expectedId.getValue()));
     }
@@ -208,32 +213,33 @@ public class GenreAPITest {
         final var expectedCategories = List.of("123", "456");
 
         final var aGenre = Genre.newGenre(expectedName, expectedIsActive)
-            .addCategories(expectedCategories.stream().map(
-            CategoryID::from).toList());
+                .addCategories(expectedCategories.stream().map(
+                        CategoryID::from).toList());
 
         final var expectedId = aGenre.getId().getValue();
 
         final var aCommand = new UpdateGenreRequest(expectedName, expectedCategories, expectedIsActive);
 
         Mockito.when(updateGenreUseCase.execute(Mockito.any()))
-            .thenReturn(UpdateGenreOutput.from(aGenre));
+                .thenReturn(UpdateGenreOutput.from(aGenre));
 
         //when
         final var aRequest = MockMvcRequestBuilders.put("/genres/{$id}", expectedId)
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.GENRES_JWT)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(aCommand));
 
         final var response = mock.perform(aRequest);
 
         //then
         response.andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id", equalTo(expectedId)));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", equalTo(expectedId)));
 
         Mockito.verify(updateGenreUseCase).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedIsActive, cmd.isActive()) &&
-            Objects.equals(expectedCategories, cmd.categories())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive()) &&
+                        Objects.equals(expectedCategories, cmd.categories())
         ));
 
     }
@@ -247,35 +253,36 @@ public class GenreAPITest {
         final var expectedErrorMessage = "'name' should not be null";
 
         final var aGenre = Genre.newGenre("Ação", expectedIsActive)
-            .addCategories(expectedCategories.stream().map(
-                CategoryID::from).toList());
+                .addCategories(expectedCategories.stream().map(
+                        CategoryID::from).toList());
 
         final var expectedId = aGenre.getId().getValue();
 
         final var aCommand = new UpdateGenreRequest(expectedName, expectedCategories, expectedIsActive);
 
         Mockito.when(updateGenreUseCase.execute(Mockito.any()))
-            .thenThrow(new NotificationException("Error message", Notification.create(new Error(expectedErrorMessage))));
+                .thenThrow(new NotificationException("Error message", Notification.create(new Error(expectedErrorMessage))));
 
         //when
         final var aRequest = MockMvcRequestBuilders.put("/genres/{$id}", expectedId)
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(mapper.writeValueAsString(aCommand));
+                .with(ApiTest.GENRES_JWT)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(aCommand));
 
         final var response = mock.perform(aRequest);
 
         //then
         response.andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().string("Location", nullValue()))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(header().string("Location", nullValue()))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         Mockito.verify(updateGenreUseCase).execute(argThat(cmd ->
-            Objects.equals(expectedId, cmd.id()) &&
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedIsActive, cmd.isActive()) &&
-            Objects.equals(expectedCategories, cmd.categories())
+                Objects.equals(expectedId, cmd.id()) &&
+                        Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive()) &&
+                        Objects.equals(expectedCategories, cmd.categories())
         ));
     }
 
@@ -288,8 +295,9 @@ public class GenreAPITest {
 
         //when
         final var aRequest = MockMvcRequestBuilders.delete("/genres/{genreId}", expectedId)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON_VALUE);
+                .with(ApiTest.GENRES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE);
 
         final var response = mock.perform(aRequest);
 
@@ -312,47 +320,48 @@ public class GenreAPITest {
         final var expectedTotal = 1;
 
         final var expectedItems = List.of(
-            GenreListOutput.from(aGenre)
+                GenreListOutput.from(aGenre)
         );
 
         Mockito.when(listGenreUseCase.execute(Mockito.any()))
-            .thenReturn(new Pagination<>(
-                expectedPage,
-                expectedPerPage,
-                expectedTotal,
-                expectedItems
-            ));
+                .thenReturn(new Pagination<>(
+                        expectedPage,
+                        expectedPerPage,
+                        expectedTotal,
+                        expectedItems
+                ));
 
         //when
         final var aRequest = MockMvcRequestBuilders.get("/genres")
-            .queryParam("page", String.valueOf(expectedPage))
-            .queryParam("perPage", String.valueOf(expectedPerPage))
-            .queryParam("search", expectedTerms)
-            .queryParam("sort", expectedSort)
-            .queryParam("dir", expectedDirection)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON_VALUE);
+                .with(ApiTest.GENRES_JWT)
+                .queryParam("page", String.valueOf(expectedPage))
+                .queryParam("perPage", String.valueOf(expectedPerPage))
+                .queryParam("search", expectedTerms)
+                .queryParam("sort", expectedSort)
+                .queryParam("dir", expectedDirection)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE);
 
         final var response = mock.perform(aRequest);
 
         //then
         response.andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
-            .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
-            .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
-            .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
-            .andExpect(jsonPath("$.items[0].id", equalTo(aGenre.getId().getValue())))
-            .andExpect(jsonPath("$.items[0].name", equalTo(aGenre.getName())))
-            .andExpect(jsonPath("$.items[0].is_active", equalTo(aGenre.isActive())))
-            .andExpect(jsonPath("$.items[0].created_at", equalTo(aGenre.getCreatedAt().toString())))
-            .andExpect(jsonPath("$.items[0].deleted_at", equalTo(aGenre.getDeletedAt().toString())));
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
+                .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
+                .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
+                .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
+                .andExpect(jsonPath("$.items[0].id", equalTo(aGenre.getId().getValue())))
+                .andExpect(jsonPath("$.items[0].name", equalTo(aGenre.getName())))
+                .andExpect(jsonPath("$.items[0].is_active", equalTo(aGenre.isActive())))
+                .andExpect(jsonPath("$.items[0].created_at", equalTo(aGenre.getCreatedAt().toString())))
+                .andExpect(jsonPath("$.items[0].deleted_at", equalTo(aGenre.getDeletedAt().toString())));
 
         Mockito.verify(listGenreUseCase).execute(argThat(searchQuery ->
-            Objects.equals(expectedPage, searchQuery.page()) &&
-            Objects.equals(expectedPerPage, searchQuery.perPage()) &&
-            Objects.equals(expectedTerms, searchQuery.terms()) &&
-            Objects.equals(expectedSort, searchQuery.sort()) &&
-            Objects.equals(expectedDirection, searchQuery.direction())));
+                Objects.equals(expectedPage, searchQuery.page()) &&
+                        Objects.equals(expectedPerPage, searchQuery.perPage()) &&
+                        Objects.equals(expectedTerms, searchQuery.terms()) &&
+                        Objects.equals(expectedSort, searchQuery.sort()) &&
+                        Objects.equals(expectedDirection, searchQuery.direction())));
     }
 }

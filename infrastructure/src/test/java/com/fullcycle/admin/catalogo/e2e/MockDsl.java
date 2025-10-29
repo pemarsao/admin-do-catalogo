@@ -1,5 +1,6 @@
 package com.fullcycle.admin.catalogo.e2e;
 
+import com.fullcycle.admin.catalogo.ApiTest;
 import com.fullcycle.admin.catalogo.domain.Identifier;
 import com.fullcycle.admin.catalogo.domain.castmember.CastMemberID;
 import com.fullcycle.admin.catalogo.domain.castmember.CastMemberType;
@@ -41,7 +42,7 @@ public interface MockDsl {
     }
 
     default CastMemberID givenCastMember(final String expectedName, final CastMemberType type) throws
-                                                                                                                                  Exception {
+            Exception {
         final var aRequestBody = new CreateCastMemberRequest(expectedName, type);
         final var actualId = given("/cast_members", aRequestBody);
         return CastMemberID.from(actualId);
@@ -49,7 +50,7 @@ public interface MockDsl {
 
     default ResultActions givenCastMemberResult(final String expectedName, final CastMemberType type) throws Exception {
         final var aRequestBody = new CreateCastMemberRequest(expectedName, type);
-        return  givenResult("/cast_members", aRequestBody);
+        return givenResult("/cast_members", aRequestBody);
     }
 
     default ResultActions listCastMembers(final int page, final int perPage, final String search) throws Exception {
@@ -85,7 +86,7 @@ public interface MockDsl {
     }
 
     default CategoryID givenCategory(final String expectedName, final String expectedDescription, final boolean expectedIsActive) throws
-                                                                                                                                  Exception {
+            Exception {
         final var aRequestBody = new CreateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
         final var actualId = given("/categories", aRequestBody);
         return CategoryID.from(actualId);
@@ -116,11 +117,11 @@ public interface MockDsl {
     }
 
     /**
-     *  Genres
+     * Genres
      */
 
     default GenreID givenGenre(final String expectedName, final boolean expectedIsActive, List<CategoryID> expectedCategories) throws
-                                                                                                                               Exception {
+            Exception {
         final var aRequestBody = new CreateGenreRequest(expectedName, mapTo(expectedCategories, CategoryID::getValue), expectedIsActive);
         final var actualId = given("/genres", aRequestBody);
         return GenreID.from(actualId);
@@ -160,84 +161,91 @@ public interface MockDsl {
 
     private ResultActions deleteMock(final String url, final Identifier anId) throws Exception {
         final var aRequest = delete(url + anId.getValue())
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         return this.mvc().perform(aRequest)
-            .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent());
     }
 
     private String given(final String url, Object body) throws Exception {
         final var aRequest = post(url)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(Json.writeValueAsString(body));
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Json.writeValueAsString(body));
 
         final var actualId = this.mvc().perform(aRequest)
-            .andExpect(status().isCreated())
-            .andReturn()
-            .getResponse().getHeader("Location")
-            .replace("%s/".formatted(url), "");
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse().getHeader("Location")
+                .replace("%s/".formatted(url), "");
 
         return actualId;
     }
 
     private ResultActions givenResult(final String url, Object body) throws Exception {
         final var aRequest = post(url)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(Json.writeValueAsString(body));
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Json.writeValueAsString(body));
 
         return this.mvc().perform(aRequest);
     }
 
     private ResultActions update(final String url, final Identifier anId, final Object body) throws Exception {
         final var aRequest = put(url + anId.getValue())
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(Json.writeValueAsString(body));
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Json.writeValueAsString(body));
 
         return this.mvc().perform(aRequest);
     }
 
     private ResultActions list(final String url, final int page, final int perPage, final String search, final String sort, final String direction) throws
-                                                                                                                                                    Exception {
+            Exception {
         final var aRequest = get(url).param("page", String.valueOf(page))
-            .param("perPage", String.valueOf(perPage))
-            .param("search", search)
-            .param("sort", sort)
-            .param("dir", direction)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.ADMIN_JWT)
+                .param("perPage", String.valueOf(perPage))
+                .param("search", search)
+                .param("sort", sort)
+                .param("dir", direction)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         return this.mvc().perform(aRequest);
     }
 
     private ResultActions getIdentifier(final String url, final Identifier anId) throws Exception {
         final var aRequest = get(url + anId.getValue())
-            .accept(MediaType.APPLICATION_JSON_UTF8)
-            .contentType(MediaType.APPLICATION_JSON_UTF8);
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON_UTF8);
 
         return this.mvc().perform(aRequest);
     }
 
-    default  <A, D> List<A> mapTo(final List<D> list, final Function<D, A> mapper) {
+    default <A, D> List<A> mapTo(final List<D> list, final Function<D, A> mapper) {
         return list
-            .stream()
-            .map(mapper)
-            .toList();
+                .stream()
+                .map(mapper)
+                .toList();
     }
 
     private <T> T retrieve(final String url, final Identifier anId, final Class<T> clazz) throws Exception {
         final var aRequest = get(url + anId.getValue())
-            .accept(MediaType.APPLICATION_JSON_UTF8)
-            .contentType(MediaType.APPLICATION_JSON_UTF8);
+                .with(ApiTest.ADMIN_JWT)
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON_UTF8);
 
         final var json = this.mvc().perform(aRequest)
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         return Json.readValue(json, clazz);
     }

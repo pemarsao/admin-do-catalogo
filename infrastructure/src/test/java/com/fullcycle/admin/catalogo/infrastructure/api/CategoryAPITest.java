@@ -1,6 +1,7 @@
 package com.fullcycle.admin.catalogo.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fullcycle.admin.catalogo.ApiTest;
 import com.fullcycle.admin.catalogo.ControllerTest;
 import com.fullcycle.admin.catalogo.application.category.create.CreateCategoryOutput;
 import com.fullcycle.admin.catalogo.application.category.create.CreateCategoryUseCase;
@@ -85,23 +86,24 @@ public class CategoryAPITest {
         final var anInput = new CreateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
 
         when(createCategoryUseCase.execute(any()))
-            .thenReturn(Right(CreateCategoryOutput.from("123")));
+                .thenReturn(Right(CreateCategoryOutput.from("123")));
 
         MockHttpServletRequestBuilder request = post("/categories")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isCreated())
-            .andExpect(header().string("Location", "/categories/123"))
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id", equalTo("123")));
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/categories/123"))
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", equalTo("123")));
 
         verify(createCategoryUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedDescription, cmd.description()) &&
-            Objects.equals(expectedIsActive, cmd.isActive())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedDescription, cmd.description()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive())
         ));
     }
 
@@ -115,24 +117,25 @@ public class CategoryAPITest {
         final var anInput = new CreateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
 
         when(createCategoryUseCase.execute(any()))
-            .thenReturn(API.Left(Notification.create(new Error(expectedErrorMessage))));
+                .thenReturn(API.Left(Notification.create(new Error(expectedErrorMessage))));
 
         MockHttpServletRequestBuilder request = post("/categories")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Location", Matchers.nullValue()))
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().string("Location", Matchers.nullValue()))
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         verify(createCategoryUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedDescription, cmd.description()) &&
-            Objects.equals(expectedIsActive, cmd.isActive())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedDescription, cmd.description()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive())
         ));
     }
 
@@ -146,25 +149,26 @@ public class CategoryAPITest {
         final var anInput = new CreateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
 
         when(createCategoryUseCase.execute(any()))
-            .thenThrow(DomainException.with(new Error(expectedErrorMessage)));
+                .thenThrow(DomainException.with(new Error(expectedErrorMessage)));
 
         MockHttpServletRequestBuilder request = post("/categories")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Location", Matchers.nullValue()))
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().string("Location", Matchers.nullValue()))
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         verify(createCategoryUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedDescription, cmd.description()) &&
-            Objects.equals(expectedIsActive, cmd.isActive())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedDescription, cmd.description()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive())
         ));
     }
 
@@ -179,19 +183,20 @@ public class CategoryAPITest {
         when(getCategoryByIdUseCase.execute(any())).thenReturn(CategoryOutput.from(aCategory));
 
         MockHttpServletRequestBuilder request = get("/categories/{id}", expectedId)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CATEGORIES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id", equalTo(expectedId)))
-            .andExpect(jsonPath("$.name", equalTo(expectedName)))
-            .andExpect(jsonPath("$.description", equalTo(expectedDescription)))
-            .andExpect(jsonPath("$.is_active", equalTo(expectedIsActive)))
-            .andExpect(jsonPath("$.created_at", equalTo(aCategory.getCreatedAt().toString())))
-            .andExpect(jsonPath("$.updated_at", equalTo(aCategory.getUpdatedAt().toString())))
-            .andExpect(jsonPath("$.deleted_at", equalTo(aCategory.getDeletedAt())));
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", equalTo(expectedId)))
+                .andExpect(jsonPath("$.name", equalTo(expectedName)))
+                .andExpect(jsonPath("$.description", equalTo(expectedDescription)))
+                .andExpect(jsonPath("$.is_active", equalTo(expectedIsActive)))
+                .andExpect(jsonPath("$.created_at", equalTo(aCategory.getCreatedAt().toString())))
+                .andExpect(jsonPath("$.updated_at", equalTo(aCategory.getUpdatedAt().toString())))
+                .andExpect(jsonPath("$.deleted_at", equalTo(aCategory.getDeletedAt())));
 
         verify(getCategoryByIdUseCase, times(1)).execute(eq(expectedId));
 
@@ -203,19 +208,20 @@ public class CategoryAPITest {
         final var expectedMessage = "Category with ID 123 was not found";
 
         when(getCategoryByIdUseCase.execute(any()))
-            .thenThrow(NotFoundException.with(
-                Category.class,
-                expectedId
-            ));
+                .thenThrow(NotFoundException.with(
+                        Category.class,
+                        expectedId
+                ));
 
         MockHttpServletRequestBuilder request = get("/categories/{id}", expectedId.getValue())
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CATEGORIES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
     }
 
     @Test
@@ -228,22 +234,23 @@ public class CategoryAPITest {
         final var anInput = new UpdateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
 
         when(updateCategoryUseCase.execute(any()))
-            .thenReturn(Right(UpdateCategoryOutput.from("123")));
+                .thenReturn(Right(UpdateCategoryOutput.from("123")));
 
         MockHttpServletRequestBuilder request = put("/categories/{categoryId}", expectedId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id", equalTo(expectedId)));
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", equalTo(expectedId)));
 
         verify(updateCategoryUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedDescription, cmd.description()) &&
-            Objects.equals(expectedIsActive, cmd.isActive())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedDescription, cmd.description()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive())
         ));
     }
 
@@ -258,19 +265,20 @@ public class CategoryAPITest {
         final var expectedMessage = "Category with ID not-found was not found";
 
         when(updateCategoryUseCase.execute(any()))
-            .thenThrow(NotFoundException.with(
-                Category.class,
-                expectedId
-            ));
+                .thenThrow(NotFoundException.with(
+                        Category.class,
+                        expectedId
+                ));
 
         MockHttpServletRequestBuilder request = put("/categories/{categoryId}", expectedId.getValue())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", equalTo(expectedMessage)));
     }
 
     @Test
@@ -283,25 +291,26 @@ public class CategoryAPITest {
         final var anInput = new UpdateCategoryRequest(expectedName, expectedDescription, expectedIsActive);
 
         when(updateCategoryUseCase.execute(any()))
-            .thenThrow(DomainException.with(new Error(expectedErrorMessage)));
+                .thenThrow(DomainException.with(new Error(expectedErrorMessage)));
 
         MockHttpServletRequestBuilder request = put("/categories/{categoryId}", "123")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(anInput));
+                .with(ApiTest.CATEGORIES_JWT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(anInput));
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(header().string("Location", Matchers.nullValue()))
-            .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.errors", hasSize(1)))
-            .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)))
-            .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().string("Location", Matchers.nullValue()))
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.message", equalTo(expectedErrorMessage)))
+                .andExpect(jsonPath("$.errors[0].message", equalTo(expectedErrorMessage)));
 
         verify(updateCategoryUseCase, times(1)).execute(argThat(cmd ->
-            Objects.equals(expectedName, cmd.name()) &&
-            Objects.equals(expectedDescription, cmd.description()) &&
-            Objects.equals(expectedIsActive, cmd.isActive())
+                Objects.equals(expectedName, cmd.name()) &&
+                        Objects.equals(expectedDescription, cmd.description()) &&
+                        Objects.equals(expectedIsActive, cmd.isActive())
         ));
     }
 
@@ -313,12 +322,13 @@ public class CategoryAPITest {
         doNothing().when(deleteCategoryUseCase).execute(expectedId);
 
         MockHttpServletRequestBuilder request = delete("/categories/{categoryId}", "123")
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CATEGORIES_JWT)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isNoContent());
+                .andDo(print())
+                .andExpect(status().isNoContent());
 
         verify(deleteCategoryUseCase, times(1)).execute(any());
     }
@@ -326,9 +336,9 @@ public class CategoryAPITest {
     @Test
     public void givenAValidParams_whenCallsListCategories_thenReturnsCategories() throws Exception {
         final var aCategory = Category.newCategory(
-            "Filmes",
-            "A categoria mais assistida",
-            true
+                "Filmes",
+                "A categoria mais assistida",
+                true
         );
 
         final var expectedPage = 0;
@@ -340,42 +350,43 @@ public class CategoryAPITest {
         final var expectedTotal = 1;
 
         when(listCategoriesUseCase.execute(any()))
-            .thenReturn(new Pagination<CategoryListOutput>(
-                expectedPage,
-                expectedPerPage,
-                expectedTotal,
-                List.of(CategoryListOutput.from(aCategory))
-            ));
+                .thenReturn(new Pagination<CategoryListOutput>(
+                        expectedPage,
+                        expectedPerPage,
+                        expectedTotal,
+                        List.of(CategoryListOutput.from(aCategory))
+                ));
 
         MockHttpServletRequestBuilder request = get("/categories")
-            .param("page", String.valueOf(expectedPage))
-            .param("perPage", String.valueOf(expectedPerPage))
-            .param("sort", expectedSort)
-            .param("dir", expectedDirection)
-            .param("search", expectedTerms)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON);
+                .with(ApiTest.CATEGORIES_JWT)
+                .param("page", String.valueOf(expectedPage))
+                .param("perPage", String.valueOf(expectedPerPage))
+                .param("sort", expectedSort)
+                .param("dir", expectedDirection)
+                .param("search", expectedTerms)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         mock.perform(request)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
-            .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
-            .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
-            .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
-            .andExpect(jsonPath("$.items[0].id", equalTo(aCategory.getId().getValue())))
-            .andExpect(jsonPath("$.items[0].name", equalTo(aCategory.getName())))
-            .andExpect(jsonPath("$.items[0].description", equalTo(aCategory.getDescription())))
-            .andExpect(jsonPath("$.items[0].is_active", equalTo(aCategory.isActive())))
-            .andExpect(jsonPath("$.items[0].created_at", equalTo(aCategory.getCreatedAt().toString())))
-            .andExpect(jsonPath("$.items[0].deleted_at", equalTo(aCategory.getDeletedAt())));
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.current_page", equalTo(expectedPage)))
+                .andExpect(jsonPath("$.per_page", equalTo(expectedPerPage)))
+                .andExpect(jsonPath("$.total", equalTo(expectedTotal)))
+                .andExpect(jsonPath("$.items", hasSize(expectedItemsCount)))
+                .andExpect(jsonPath("$.items[0].id", equalTo(aCategory.getId().getValue())))
+                .andExpect(jsonPath("$.items[0].name", equalTo(aCategory.getName())))
+                .andExpect(jsonPath("$.items[0].description", equalTo(aCategory.getDescription())))
+                .andExpect(jsonPath("$.items[0].is_active", equalTo(aCategory.isActive())))
+                .andExpect(jsonPath("$.items[0].created_at", equalTo(aCategory.getCreatedAt().toString())))
+                .andExpect(jsonPath("$.items[0].deleted_at", equalTo(aCategory.getDeletedAt())));
 
         verify(listCategoriesUseCase, times(1)).execute(argThat(query ->
-            Objects.equals(expectedPage, query.page()) &&
-            Objects.equals(expectedPerPage, query.perPage()) &&
-            Objects.equals(expectedTerms, query.terms()) &&
-            Objects.equals(expectedSort, query.sort()) &&
-            Objects.equals(expectedDirection, query.direction())
+                Objects.equals(expectedPage, query.page()) &&
+                        Objects.equals(expectedPerPage, query.perPage()) &&
+                        Objects.equals(expectedTerms, query.terms()) &&
+                        Objects.equals(expectedSort, query.sort()) &&
+                        Objects.equals(expectedDirection, query.direction())
         ));
     }
 }
