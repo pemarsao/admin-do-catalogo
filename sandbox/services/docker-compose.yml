@@ -1,33 +1,21 @@
 version: '3.7'
 
 services:
-  app:
-    container_name: adm_videos_app
-    build: .
-    profiles: ["app"]
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - 8080:8080
-    depends_on:
-      - mysql
-      - rabbitmq
-    networks:
-      - adm_videos_network
-
   mysql:
     container_name: adm_videos_mysql
     image: mysql:latest
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=adm_videos
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: adm_videos
+      MYSQL_ROOT_HOST: '%'
     security_opt:
       - seccomp:unconfined
     ports:
       - 3306:3306
+    volumes:
+      - ../.docker/mysql:/var/lib/mysql:rw
     networks:
-      - adm_videos_network
+      - adm_videos_services
 
   rabbitmq:
     container_name: adm_videos_rabbitmq
@@ -41,7 +29,7 @@ services:
       - 5672:5672
       - 15672:15672
     networks:
-      - adm_videos_network
+      - adm_videos_services
 
   keycloak:
     container_name: adm_videos_keycloak
@@ -49,11 +37,16 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
-    command: start-dev
+    command:
+#      - start-dev # Utilizar esse comando com a aplicação for executada fora do docker
+      - start-dev --hostname-url=http://keycloak:8080
     ports:
       - 8443:8080
+    volumes:
+      - ../.docker/keycloak:/opt/keycloak/data/h2:rw
     networks:
-      - adm_videos_network
+      - adm_videos_services
 
 networks:
-  adm_videos_network:
+  adm_videos_services:
+    external: true
