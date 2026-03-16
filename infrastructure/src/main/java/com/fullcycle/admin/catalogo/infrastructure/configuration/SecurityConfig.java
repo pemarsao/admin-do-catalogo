@@ -56,8 +56,6 @@ public class SecurityConfig {
                 })
                 .oauth2ResourceServer(oauth -> {
                     oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtConverter()));
-//                    oauth.jwt()
-//                            .jwtAuthenticationConverter(new KeycloakJwtConverter());
                 })
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -112,7 +110,7 @@ public class SecurityConfig {
             final Function<Map.Entry<String, Object>, Stream<String>> mapResource =
                     resource -> {
                         final var key = resource.getKey();
-                        final var value = (JsonObject) resource.getValue();
+                        final var value = (Map) resource.getValue();
                         final var roles = (Collection<String>) value.get(ROLES);
 
                         return roles.stream().map(role -> key.concat(SEPARATOR).concat(role));
