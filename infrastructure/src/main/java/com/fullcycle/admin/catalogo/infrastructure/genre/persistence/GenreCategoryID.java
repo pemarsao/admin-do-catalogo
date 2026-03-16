@@ -1,9 +1,10 @@
 package com.fullcycle.admin.catalogo.infrastructure.genre.persistence;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class GenreCategoryID implements Serializable {

@@ -38,8 +38,8 @@ services:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
     command:
-#      - start-dev # Utilizar esse comando com a aplicação for executada fora do docker
-      - start-dev --hostname-url=http://keycloak:8080
+#      - start-dev # Utilizar esse comando com a aplicação for executada FORA do docker
+      - start-dev --hostname-url=http://keycloak:8080 # Utilizar esse comando com a aplicação for executada DENTRO do docker
     ports:
       - 8443:8080
     volumes:

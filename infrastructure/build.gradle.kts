@@ -13,7 +13,7 @@ plugins {
     id("java-common-conventions")
     id("jacoco-report-aggregation")
     id("application")
-    id("org.springframework.boot") version "2.7.17"
+    id("org.springframework.boot") version "3.1.4"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.flywaydb.flyway") version "9.11.0"
 }
@@ -67,10 +67,13 @@ dependencies {
     }
     testImplementation("org.flywaydb:flyway-core:9.11.0")
     testImplementation("org.flywaydb:flyway-mysql:9.11.0")
+    testImplementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
 
-    testImplementation("org.testcontainers:testcontainers:1.18.3")
-    testImplementation("org.testcontainers:mysql:1.18.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.18.3")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:testcontainers:1.21.4")
+    testImplementation("org.testcontainers:mysql:1.21.4")
+    testImplementation("org.testcontainers:mariadb:1.21.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
 
     testRuntimeOnly("com.h2database:h2")
 }

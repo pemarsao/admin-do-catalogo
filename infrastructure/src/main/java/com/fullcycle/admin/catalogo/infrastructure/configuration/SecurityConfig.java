@@ -1,6 +1,14 @@
 package com.fullcycle.admin.catalogo.infrastructure.configuration;
 
-import com.nimbusds.jose.shaded.json.JSONObject;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -9,6 +17,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,10 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.nimbusds.jose.shaded.gson.JsonObject;
 
 @Configuration
 @EnableWebSecurity
@@ -42,21 +48,20 @@ public class SecurityConfig {
                 })
                 .authorizeHttpRequests(autorize -> {
                     autorize
-                            .antMatchers("/cast_members*").hasAnyRole(ROLE_ADMIN, ROLE_CAST_MEMBERS)
-                            .antMatchers("/categories*").hasAnyRole(ROLE_ADMIN, ROLE_CATEGORIES)
-                            .antMatchers("/genres*").hasAnyRole(ROLE_ADMIN, ROLE_GENRES)
-                            .antMatchers("/videos*").hasAnyRole(ROLE_ADMIN, ROLE_VIDEOS)
+                            .requestMatchers("/cast_members*").hasAnyRole(ROLE_ADMIN, ROLE_CAST_MEMBERS)
+                            .requestMatchers("/categories*").hasAnyRole(ROLE_ADMIN, ROLE_CATEGORIES)
+                            .requestMatchers("/genres*").hasAnyRole(ROLE_ADMIN, ROLE_GENRES)
+                            .requestMatchers("/videos*").hasAnyRole(ROLE_ADMIN, ROLE_VIDEOS)
                             .anyRequest().hasRole(ROLE_ADMIN);
                 })
                 .oauth2ResourceServer(oauth -> {
-                    oauth.jwt()
-                            .jwtAuthenticationConverter(new KeycloakJwtConverter());
+                    oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtConverter()));
                 })
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
                 .headers(headers -> {
-                    headers.frameOptions().sameOrigin();
+                    headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin);
                 })
                 .build();
     }
@@ -105,7 +110,7 @@ public class SecurityConfig {
             final Function<Map.Entry<String, Object>, Stream<String>> mapResource =
                     resource -> {
                         final var key = resource.getKey();
-                        final var value = (JSONObject) resource.getValue();
+                        final var value = (Map) resource.getValue();
                         final var roles = (Collection<String>) value.get(ROLES);
 
                         return roles.stream().map(role -> key.concat(SEPARATOR).concat(role));

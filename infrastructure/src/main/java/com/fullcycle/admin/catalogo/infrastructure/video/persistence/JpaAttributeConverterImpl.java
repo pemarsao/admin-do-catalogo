@@ -1,10 +1,10 @@
 package com.fullcycle.admin.catalogo.infrastructure.video.persistence;
 
 
-import com.fullcycle.admin.catalogo.domain.video.Rating;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import com.fullcycle.admin.catalogo.domain.video.Rating;
 
 @Converter(autoApply = true)
 public class JpaAttributeConverterImpl implements AttributeConverter<Rating, String> {

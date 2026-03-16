@@ -1,19 +1,24 @@
 package com.fullcycle.admin.catalogo.e2e.category;
 
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import com.fullcycle.admin.catalogo.E2ETest;
 import com.fullcycle.admin.catalogo.domain.category.CategoryID;
 import com.fullcycle.admin.catalogo.e2e.MockDsl;
 import com.fullcycle.admin.catalogo.infrastructure.category.models.UpdateCategoryRequest;
 import com.fullcycle.admin.catalogo.infrastructure.category.persistence.CategoryRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -25,14 +30,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CategoryE2ETest implements MockDsl {
 
     @Container
-    private static final MySQLContainer MYSQL_CONTAINER = new MySQLContainer("mysql:8.2.0")
-        .withPassword("123456")
-        .withUsername("root")
-        .withDatabaseName("adm_videos");
+    @ServiceConnection
+    private static final MariaDBContainer<?> MYSQL_CONTAINER =
+            new MariaDBContainer<>("mariadb:11")
+                    .withDatabaseName("adm_videos")
+                    .withUsername("test")
+                    .withPassword("test")
+                    .withStartupTimeout(Duration.ofMinutes(5))
+                    .withReuse(true);
 
     @DynamicPropertySource
-    public static void setDatasourceProperties(final DynamicPropertyRegistry registry) {
-        registry.add("mysql.port", () -> MYSQL_CONTAINER.getMappedPort(3306));
+    static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", MYSQL_CONTAINER::getJdbcUrl);
+        registry.add("spring.datasource.username", MYSQL_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", MYSQL_CONTAINER::getPassword);
     }
 
     @Autowired
