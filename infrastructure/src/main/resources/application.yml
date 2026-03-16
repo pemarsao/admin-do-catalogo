@@ -89,3 +89,6 @@ storage:
   catalogo-videos:
     filename-pattern: type-{type}
     location-pattern: videoId-{videoId}
+
+cors:
+  url: ${CORS_URL:http://localhost:3000/}
